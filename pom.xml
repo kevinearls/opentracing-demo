@@ -10,6 +10,9 @@
 
   <properties>
     <finalName>${project.artifactId}</finalName>
+    <maven.compiler.source>1.8</maven.compiler.source>
+    <maven.compiler.target>1.8</maven.compiler.target>
+    <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     <version.org.springframework.boot>1.4.2.RELEASE</version.org.springframework.boot>
     <start-class>io.opentracing.demo.rest.App</start-class>
   </properties>
@@ -84,6 +87,7 @@
       <plugin>
         <groupId>org.springframework.boot</groupId>
         <artifactId>spring-boot-maven-plugin</artifactId>
+        <version>1.5.1.RELEASE</version>
         <executions>
           <execution>
             <goals>
@@ -94,6 +98,15 @@
         <configuration>
           <mainClass>${start-class}</mainClass>
           <classifier>exec</classifier>
+        </configuration>
+      </plugin>
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-compiler-plugin</artifactId>
+        <version>3.6.1</version>
+        <configuration>
+          <source>${maven.compiler.source}</source>
+          <target>${maven.compiler.target}</target>
         </configuration>
       </plugin>
     </plugins>
