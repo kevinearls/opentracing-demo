@@ -47,8 +47,6 @@ public class RestHandler {
     private String getEmailFromDB(SpanContext parent, String userName) {
 
         if (parent != null) {
-            //waitRandom();
-
             Span dbProcessingSpan = tracer.buildSpan("get_user_from_db")
                     .asChildOf(parent)
                     .start();
@@ -60,8 +58,10 @@ public class RestHandler {
              */
 
             long waitTime = waitRandom();
+
             //Adding wait time as a tag
             dbProcessingSpan.setTag("waitTime", waitTime);
+            dbProcessingSpan.setTag("user", userName);
 
             dbProcessingSpan.finish();
         }

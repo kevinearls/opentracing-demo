@@ -2,20 +2,16 @@ package io.opentracing.demo.rest;
 
 import javax.ws.rs.ApplicationPath;
 
-import brave.opentracing.BraveTracer;
 import org.glassfish.jersey.server.ResourceConfig;
 import org.hawkular.apm.client.api.recorder.BatchTraceRecorder;
 import org.hawkular.apm.client.opentracing.APMTracer;
 import org.hawkular.apm.client.opentracing.DeploymentMetaData;
 import org.hawkular.apm.trace.publisher.rest.client.TracePublisherRESTClient;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
 
 import io.opentracing.Tracer;
-import zipkin.Endpoint;
-import zipkin.Span;
-import zipkin.reporter.AsyncReporter;
-import zipkin.reporter.Reporter;
-import zipkin.reporter.urlconnection.URLConnectionSender;
 
 import static org.hawkular.apm.client.api.sampler.Sampler.ALWAYS_SAMPLE;
 
@@ -25,18 +21,37 @@ import static org.hawkular.apm.client.api.sampler.Sampler.ALWAYS_SAMPLE;
 @Component
 @ApplicationPath("/")
 public class JerseyConfig extends ResourceConfig {
+    private final Logger logger = LoggerFactory.getLogger(JerseyConfig.class);
 
-    public static final String HAWKULAR_APM_URL =  "http://localhost:8080";
-    public static final String HAKWULAR_APM_PASSWORD = "password";
-    public static final String HAWKULAR_APM_USER = "jdoe";
-    public static final String DEMO_SERVICE_NAME = "opentracing-demo";
+    public static String HAWKULAR_APM_URI =  "http://localhost:8080";
+    public static String HAKWULAR_APM_PASSWORD = "password";
+    public static String HAWKULAR_APM_USERNAME = "jdoe";
+    public static String DEMO_SERVICE_NAME = "opentracing-demo";
 
     public JerseyConfig() {
-        register(new RestHandler(openTracingHakular()));
+        HAWKULAR_APM_URI = getEnv("HAWKULAR_APM_URI", HAWKULAR_APM_URI);
+        HAKWULAR_APM_PASSWORD = getEnv("HAKWULAR_APM_PASSWORD", HAKWULAR_APM_PASSWORD);
+        HAWKULAR_APM_USERNAME = getEnv("HAWKULAR_APM_USERNAME", HAWKULAR_APM_USERNAME);
+
+        Tracer tracer = openTracingHawkular();
+        RestHandler restHandler = new RestHandler(tracer);
+        register(restHandler);
+        //register(new RestHandler(openTracingHawkular()));
     }
 
-    Tracer openTracingHakular() {
-        TracePublisherRESTClient restClient = new TracePublisherRESTClient(HAWKULAR_APM_USER, HAKWULAR_APM_PASSWORD, HAWKULAR_APM_URL);
+    public String getEnv(String name, String defaultValue) {
+        String value = System.getenv(name);
+        if (value == null) {
+            logger.info("For " + name + " using default of " + defaultValue);
+            return defaultValue;
+        } else {
+            logger.info("For " + name + "found: " + value);
+            return value;
+        }
+    }
+
+    Tracer openTracingHawkular() {
+        TracePublisherRESTClient restClient = new TracePublisherRESTClient(HAWKULAR_APM_USERNAME, HAKWULAR_APM_PASSWORD, HAWKULAR_APM_URI);
         BatchTraceRecorder traceRecorder = new BatchTraceRecorder.BatchTraceRecorderBuilder()
                 .withTracePublisher(restClient)
                 .build();
